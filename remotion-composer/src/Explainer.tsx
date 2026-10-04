@@ -26,6 +26,8 @@ import { HeroTitle } from "./components/HeroTitle";
 import { AnimeScene } from "./components/AnimeScene";
 import type { CameraMotion } from "./components/AnimeScene";
 import { TerminalScene } from "./components/TerminalScene";
+import { QmsCounterScene } from "./components/QmsCounterScene";
+import type { QmsVariant } from "./components/QmsCounterScene";
 import type { TerminalStep } from "./components/TerminalScene";
 import { ScreenshotScene } from "./components/ScreenshotScene";
 import type { ScreenshotStep } from "./components/ScreenshotScene";
@@ -260,6 +262,8 @@ interface Cut {
   vignette?: boolean;
   lightingFrom?: string;
   lightingTo?: string;
+  // QMS counter mock (type: "qms_scene")
+  qmsVariant?: QmsVariant;
   // Terminal scene props (type: "terminal_scene")
   steps?: TerminalStep[];
   terminalTitle?: string;
@@ -631,6 +635,9 @@ const SceneRenderer: React.FC<{ cut: Cut; theme: ThemeConfig }> = ({ cut, theme 
         scrimBackground={heroScrim(theme)}
       />
     );
+  }
+  if (cut.type === "qms_scene" && cut.qmsVariant) {
+    return <QmsCounterScene variant={cut.qmsVariant} />;
   }
   if (cut.type === "terminal_scene" && cut.steps) {
     return maybeWrapWithBg(

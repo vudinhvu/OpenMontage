@@ -17,3 +17,5 @@ export type { ParticleType } from "./ParticleOverlay";
 export type { CameraMotion, AnimeSceneProps } from "./AnimeScene";
 export type { TerminalStep } from "./TerminalScene";
 export type { ScreenshotStep, Region, Point } from "./ScreenshotScene";
+export { QmsCounterScene } from "./QmsCounterScene";
+export type { QmsVariant } from "./QmsCounterScene";
