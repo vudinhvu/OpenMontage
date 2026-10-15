@@ -16,6 +16,7 @@ import { ProductReveal, ProductRevealProps } from "./components/ProductReveal";
 import { CaptionOverlay, WordCaption } from "./components/CaptionOverlay";
 import { CollageBurst, CollageBurstProps } from "./CollageBurst";
 import { LyricOverlay, LyricOverlayProps } from "./LyricOverlay";
+import { VnsgnGuide, VNSGN_TOTAL } from "./VnsgnGuide";
 
 // ---------------------------------------------------------------------------
 // Theme System — prevents every video from looking like dark fintech
@@ -295,6 +296,14 @@ export const Root: React.FC = () => {
           lyrics: [],
           bottomY: 0.88,
         } as LyricOverlayProps}
+      />
+      <Composition
+        id="VnsgnGuide"
+        component={VnsgnGuide}
+        durationInFrames={VNSGN_TOTAL}
+        fps={30}
+        width={1920}
+        height={1080}
       />
       <Composition
         id="EndTag"
