@@ -200,7 +200,7 @@
     },
     "render_runtime": {
       "type": "string",
-      "enum": ["remotion", "hyperframes", "ffmpeg"],
+      "enum": ["remotion", "hyperframes", "motion-canvas", "ffmpeg"],
       "description": "Locked at proposal stage — technical runtime that realizes renderer_family. Edit MUST carry this forward unchanged unless a logged render_runtime_selection decision overrides it."
     },
     "composition_mode": {

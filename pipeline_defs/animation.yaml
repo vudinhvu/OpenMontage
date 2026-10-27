@@ -41,6 +41,8 @@ required_skills:
   - meta/checkpoint-protocol
   - meta/animation-runtime-selector
   - meta/voice-performance-director
+  - core/motion-canvas
+  - creative/creative-skill-routing
 
 orchestration:
   mode: executive-producer
@@ -260,6 +262,7 @@ stages:
     tools_available:
       - video_compose
       - hyperframes_compose
+      - motion_canvas_compose
       - audio_mixer
       - video_stitch
     checkpoint_required: true

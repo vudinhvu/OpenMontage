@@ -152,8 +152,8 @@
         },
         "render_runtime": {
           "type": "string",
-          "enum": ["remotion", "hyperframes", "ffmpeg"],
-          "description": "Locked at proposal stage — the technical runtime that realizes renderer_family. remotion=React scene components, hyperframes=HTML/CSS/GSAP, ffmpeg=simple concat/trim. Must be explicit and auditable; silent swaps are forbidden."
+          "enum": ["remotion", "hyperframes", "motion-canvas", "ffmpeg"],
+          "description": "Locked at proposal stage — the technical runtime that realizes renderer_family. remotion=React scene components, hyperframes=HTML/CSS/GSAP, motion-canvas=TypeScript generator scenes, ffmpeg=simple concat/trim. Must be explicit and auditable; silent swaps are forbidden."
         },
         "composition_mode": {
           "type": "string",

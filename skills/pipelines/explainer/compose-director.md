@@ -443,3 +443,4 @@ Validate the render_report against the schema and persist via checkpoint.
 - **Subtitle encoding**: Burn subtitles into the video (hardcoded) for maximum compatibility. Don't rely on soft subtitles for social media.
 - **Single-pass encode**: Two-pass encoding produces better quality at the same file size. Worth the extra render time.
 - **Ignoring media profile**: YouTube and TikTok have very different requirements. Always check the target profile.
+> Creative skill routing: when the approved runtime is `motion-canvas`, read `skills/core/motion-canvas.md`; preserve the locked runtime and return a blocker rather than substituting a renderer. Read `skills/creative/creative-skill-routing.md`.

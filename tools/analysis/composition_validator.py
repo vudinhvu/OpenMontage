@@ -70,7 +70,7 @@ class CompositionValidator(BaseTool):
             },
             "render_runtime": {
                 "type": "string",
-                "enum": ["remotion", "hyperframes", "ffmpeg"],
+                "enum": ["remotion", "hyperframes", "motion-canvas", "ffmpeg"],
                 "description": (
                     "Which runtime will consume this composition. Drives the "
                     "default asset root: remotion→remotion-composer/public, "
@@ -130,6 +130,20 @@ class CompositionValidator(BaseTool):
                         break
                     local_assets = candidate / "assets"
                     if local_assets.is_dir() and (candidate / "index.html").is_file():
+                        resolved = local_assets
+                        break
+                assets_root = resolved or comp_path.parent
+            elif runtime == "motion-canvas":
+                candidate = comp_path
+                resolved = None
+                for _ in range(5):
+                    candidate = candidate.parent
+                    motion_canvas_assets = candidate / "motion-canvas" / "assets"
+                    if motion_canvas_assets.is_dir():
+                        resolved = motion_canvas_assets
+                        break
+                    local_assets = candidate / "assets"
+                    if local_assets.is_dir() and (candidate / "src").is_dir():
                         resolved = local_assets
                         break
                 assets_root = resolved or comp_path.parent

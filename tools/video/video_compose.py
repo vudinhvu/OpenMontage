@@ -264,6 +264,14 @@ class VideoCompose(BaseTool):
         except Exception:
             return False
 
+    def _motion_canvas_available(self) -> bool:
+        """Delegate Motion Canvas preflight to its dedicated local runtime."""
+        try:
+            from tools.video.motion_canvas_compose import MotionCanvasCompose
+            return bool(MotionCanvasCompose()._runtime_check()["runtime_available"])
+        except Exception:
+            return False
+
     def get_info(self) -> dict[str, Any]:
         """Extend base get_info to surface all available render runtimes.
 
@@ -275,10 +283,12 @@ class VideoCompose(BaseTool):
         ffmpeg_ok = self._ffmpeg_available()
         remotion_ok = self._remotion_available()
         hyperframes_ok = self._hyperframes_available()
+        motion_canvas_ok = self._motion_canvas_available()
         info["render_engines"] = {
             "ffmpeg": ffmpeg_ok,
             "remotion": remotion_ok,
             "hyperframes": hyperframes_ok,
+            "motion-canvas": motion_canvas_ok,
         }
         # Backwards-compat alias — some proposal skills inspect this name.
         info["render_runtimes"] = info["render_engines"]
@@ -317,6 +327,7 @@ class VideoCompose(BaseTool):
                 "not guarantee a render will succeed on the first specific "
                 "composition."
             )
+
         else:
             info["hyperframes_note"] = (
                 "HyperFrames is NOT available. Requires Node.js >= 22, FFmpeg, "
@@ -324,6 +335,12 @@ class VideoCompose(BaseTool):
                 "Run `make hyperframes-doctor` to see the specific missing piece, "
                 "or call `hyperframes_compose` operation='doctor' directly."
             )
+
+        info["motion_canvas_note"] = (
+            "Motion Canvas is available for editable, generator-driven 2D vector sequences."
+            if motion_canvas_ok
+            else "Motion Canvas is NOT available; install motion-canvas-composer dependencies."
+        )
 
         # Governance note — agents and reviewers consume this.
         info["runtime_governance"] = (
@@ -1551,17 +1568,17 @@ class VideoCompose(BaseTool):
                     "it MUST be locked at proposal stage (proposal_packet."
                     "production_plan.render_runtime) and carried forward through "
                     "edit_decisions.render_runtime. Valid values: 'remotion', "
-                    "'hyperframes', 'ffmpeg'. Re-run the proposal stage with an "
+                    "'hyperframes', 'motion-canvas', 'ffmpeg'. Re-run the proposal stage with an "
                     "explicit runtime choice — do NOT default this field."
                 ),
             )
 
-        if render_runtime not in {"remotion", "hyperframes", "ffmpeg"}:
+        if render_runtime not in {"remotion", "hyperframes", "motion-canvas", "ffmpeg"}:
             return ToolResult(
                 success=False,
                 error=(
                     f"Unknown render_runtime {render_runtime!r}. "
-                    f"Valid values: remotion, hyperframes, ffmpeg. "
+                    f"Valid values: remotion, hyperframes, motion-canvas, ffmpeg. "
                     f"render_runtime must be set at proposal stage."
                 ),
             )
@@ -1639,6 +1656,15 @@ class VideoCompose(BaseTool):
 
         if render_runtime == "hyperframes":
             return self._render_via_hyperframes(
+                inputs=inputs,
+                edit_decisions=edit_decisions,
+                asset_manifest=asset_manifest,
+                resolved_cuts=resolved_cuts,
+                output_path=output_path,
+                profile=profile,
+            )
+        if render_runtime == "motion-canvas":
+            return self._render_via_motion_canvas(
                 inputs=inputs,
                 edit_decisions=edit_decisions,
                 asset_manifest=asset_manifest,
@@ -1747,6 +1773,57 @@ class VideoCompose(BaseTool):
                     data=render_result.data,
                 )
 
+        return render_result
+
+    def _render_via_motion_canvas(
+        self,
+        *,
+        inputs: dict[str, Any],
+        edit_decisions: dict[str, Any],
+        asset_manifest: dict[str, Any],
+        resolved_cuts: list[dict],
+        output_path: Path,
+        profile: Optional[str],
+    ) -> ToolResult:
+        """Delegate a locked Motion Canvas render without another-runtime fallback."""
+        if not self._motion_canvas_available():
+            return ToolResult(
+                success=False,
+                error=(
+                    "render_runtime='motion-canvas' was locked at proposal, but the "
+                    "Motion Canvas runtime is not available on this machine. This is a "
+                    "BLOCKER: do not silently fall back to Remotion, HyperFrames, or "
+                    "FFmpeg. Install the local motion-canvas-composer dependencies or "
+                    "obtain explicit approval for a runtime swap."
+                ),
+            )
+
+        try:
+            from tools.video.motion_canvas_compose import MotionCanvasCompose
+        except Exception as exc:
+            return ToolResult(success=False, error=f"Could not import motion_canvas_compose: {exc}")
+
+        project_dir = inputs.get("project_dir") or str(output_path.parent.parent / "motion-canvas")
+        motion_canvas_inputs: dict[str, Any] = {
+            "operation": "render",
+            "project_dir": project_dir,
+            "output_path": str(output_path),
+            "edit_decisions": dict(edit_decisions, cuts=resolved_cuts),
+            "asset_manifest": asset_manifest,
+        }
+        if profile:
+            motion_canvas_inputs["profile"] = profile
+
+        render_result = MotionCanvasCompose().execute(motion_canvas_inputs)
+        if not render_result.success:
+            return ToolResult(
+                success=False,
+                error=(
+                    f"Motion Canvas render failed: {render_result.error}. Per governance: "
+                    "do not silently fall back to Remotion, HyperFrames, or FFmpeg."
+                ),
+                data=render_result.data,
+            )
         return render_result
 
     def _render_via_hyperframes(

@@ -234,3 +234,4 @@ Recommended metadata keys:
 - **Skipping `composition_validator`** — catches missing files, bad timings, audio mismatches before you waste render time.
 - **Not extracting frames for self-review** — a rendered video is not "done" until frames are visually inspected. Black frames, missing particles, or invisible images are not always obvious from file size alone.
 - **Using `durationInFrames` from `useVideoConfig()` for scene-level timing** — this returns the FULL composition duration, not the scene's Sequence duration. See `skills/core/remotion.md` Critical Constraints.
+> Creative skill routing: `motion-canvas` uses `skills/core/motion-canvas.md`; preserve the approved runtime and return its blocker without fallback. Read `skills/creative/creative-skill-routing.md`.

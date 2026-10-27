@@ -180,3 +180,4 @@ This stage gates on human approval (`human_approval_default: true`). After revie
 checkpoint with `status="awaiting_human"`, present the summary (the Backlot board renders
 the artifact), and **END YOUR TURN**. Do not start the next stage in the same response.
 Approval is per-gate — an earlier "go ahead" does not cover this gate.
+> Creative skill routing: retain static diagram sources and approved brand inputs; `asset_manifest.layer3_skills_read` lists only skills actually used. Read `skills/creative/creative-skill-routing.md`.

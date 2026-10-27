@@ -1162,7 +1162,7 @@ def test_proposal_packet_schema_accepts_render_runtime():
     props = schema["properties"]["production_plan"]["properties"]
     assert "render_runtime" in props
     assert "renderer_family" in props
-    assert props["render_runtime"]["enum"] == ["remotion", "hyperframes", "ffmpeg"]
+    assert props["render_runtime"]["enum"] == ["remotion", "hyperframes", "motion-canvas", "ffmpeg"]
 
 
 def test_schemas_accept_voice_performance_contract():
@@ -1240,6 +1240,7 @@ def test_edit_decisions_schema_accepts_render_runtime():
     assert schema["properties"]["render_runtime"]["enum"] == [
         "remotion",
         "hyperframes",
+        "motion-canvas",
         "ffmpeg",
     ]
 

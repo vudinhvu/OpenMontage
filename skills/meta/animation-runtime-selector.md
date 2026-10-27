@@ -17,7 +17,7 @@ Read this before authoring any animated component or composition, and whenever y
 ## When to use this skill
 
 Apply when:
-- **Proposal stage** needs to lock `render_runtime` (remotion / hyperframes / ffmpeg)
+- **Proposal stage** needs to lock `render_runtime` (remotion / hyperframes / motion-canvas / ffmpeg)
 - A stage director (asset, edit, compose) needs to author an animated component
 - An agent is about to write Remotion JSX for a scene that involves text reveals, SVG motion, curved camera paths, shape morphs, or multi-stage choreography
 - An agent is asked to build a HyperFrames composition
@@ -57,6 +57,7 @@ when both were available is a CRITICAL reviewer finding.
 | Brief characteristic | `render_runtime` | Read |
 |---|---|---|
 | Existing React scene stack (text_card, stat_card, chart, caption overlay, TalkingHead, CinematicRenderer) | **remotion** | `skills/core/remotion.md` |
+| Editable TypeScript generator scenes, diagram-led explainer, precise 2D vector animation | **motion-canvas** | `skills/core/motion-canvas.md` + `.agents/skills/motion-canvas/SKILL.md` |
 | Word-level caption burn / karaoke captions | **remotion** | `skills/core/remotion.md` |
 | Avatar / lip-sync / presenter | **remotion** | `skills/core/remotion.md` |
 | Kinetic typography, HTML/GSAP-native motion, product promo, launch reel | **hyperframes** | `skills/core/hyperframes.md` + `.agents/skills/hyperframes/SKILL.md` (router) → `hyperframes-core` (contract), `hyperframes-creative` (palette/type), `hyperframes-animation` (motion) |
