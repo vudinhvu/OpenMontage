@@ -119,7 +119,10 @@ class SchemaMedia(BaseTool):
         info["model_catalog"] = {
             model: {
                 "routes": routes,
-                "verified_on": "2026-10-03",
+                "verified_on": max(
+                    self.contracts[e].get("verified_on", "2026-10-03")
+                    for e in routes.values()
+                ),
                 "pricing_status": "quote_required",
             }
             for model, routes in self.models.items()
@@ -134,11 +137,16 @@ class SchemaMedia(BaseTool):
     def build_request(self, inputs):
         model = inputs.get("model", next(iter(self.models)))
         routes = self.models.get(model, {})
-        references = bool(
-            inputs.get("image_url")
-            or inputs.get("image_path")
-            or inputs.get("image_urls")
-            or inputs.get("image_paths")
+        native_reference_fields = ("images", "image_input", "image", "image_uri")
+        references = any(
+            inputs.get(field)
+            for field in (
+                "image_url",
+                "image_path",
+                "image_urls",
+                "image_paths",
+                *native_reference_fields,
+            )
         )
         operation = (
             inputs.get("generation_mode")
@@ -146,9 +154,7 @@ class SchemaMedia(BaseTool):
             or (
                 "edit"
                 if references and self.capability == "image_generation"
-                else "image_to_video"
-                if references
-                else next(iter(routes), "")
+                else "image_to_video" if references else next(iter(routes), "")
             )
         )
         if operation == "generate" and self.capability == "video_generation":
@@ -158,6 +164,9 @@ class SchemaMedia(BaseTool):
             raise ValueError(f"Unsupported model/operation: {model}/{operation}")
         schema = self.contracts[endpoint]["input_schema"]
         props = schema["properties"]
+        for field in native_reference_fields:
+            if inputs.get(field) and field not in props:
+                raise ValueError(f"{endpoint} does not accept {field}")
         payload = {k: v for k, v in inputs.items() if k in props and k != "model"}
         payload.update(inputs.get("provider_params") or {})
         if self.provider == "atlascloud":
@@ -191,13 +200,15 @@ class SchemaMedia(BaseTool):
             target = (
                 "images"
                 if "images" in props
-                else "image_input"
-                if "image_input" in props
-                else "image"
-                if "image" in props
-                else "image_uri"
-                if "image_uri" in props
-                else None
+                else (
+                    "image_input"
+                    if "image_input" in props
+                    else (
+                        "image"
+                        if "image" in props
+                        else "image_uri" if "image_uri" in props else None
+                    )
+                )
             )
             if not target:
                 raise ValueError(f"{endpoint} does not accept source images")
@@ -346,9 +357,11 @@ class SchemaMedia(BaseTool):
             values = (
                 result.get("outputs")
                 if self.provider == "atlascloud"
-                else result.get("output")
-                if self.provider == "replicate"
-                else result.get("result", {}).get("video_url")
+                else (
+                    result.get("output")
+                    if self.provider == "replicate"
+                    else result.get("result", {}).get("video_url")
+                )
             )
             if isinstance(values, str):
                 values = [values]
@@ -364,9 +377,11 @@ class SchemaMedia(BaseTool):
             outputs = [
                 download(
                     value,
-                    path
-                    if i == 0
-                    else path.with_name(f"{path.stem}_{i + 1}{path.suffix}"),
+                    (
+                        path
+                        if i == 0
+                        else path.with_name(f"{path.stem}_{i + 1}{path.suffix}")
+                    ),
                 )
                 for i, value in enumerate(values)
             ]

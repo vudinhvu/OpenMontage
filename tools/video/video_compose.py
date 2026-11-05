@@ -896,7 +896,7 @@ class VideoCompose(BaseTool):
         """
 
         staged_by_source: dict[Path, str] = {}
-        media_keys = {"source", "src", "backgroundSrc"}
+        media_keys = {"source", "src", "backgroundSrc", "backgroundImage", "backgroundVideo", "images"}
 
         def visit(node: Any, parent_key: str | None = None) -> Any:
             if isinstance(node, dict):
@@ -2169,9 +2169,13 @@ class VideoCompose(BaseTool):
         stripped, numeric-word-aware). Empty tokens dropped."""
         import re
 
+        # Strip Hebrew niqqud/cantillation so pointed and unpointed text match;
+        # maqaf acts as a hyphen and geresh as an apostrophe.
+        text = re.sub(r"[\u0591-\u05BD\u05BF\u05C1\u05C2\u05C4\u05C5\u05C7]", "", text)
+        text = text.replace("\u05BE", "-").replace("\u05F3", "'")
         # Preserve hyphenated words as single tokens ("many-worlds" -> "many-worlds").
-        # Drop everything except letters, digits, hyphens, apostrophes.
-        cleaned = re.sub(r"[^A-Za-z0-9\-' ]+", " ", text.lower())
+        # Drop everything except letters/digits of any script, hyphens, apostrophes.
+        cleaned = re.sub(r"[^\w\-' ]+|_", " ", text.lower())
         return [t for t in cleaned.split() if t and t != "-"]
 
     @classmethod
@@ -2911,22 +2915,28 @@ class VideoCompose(BaseTool):
     @staticmethod
     def _build_subtitle_style(style: dict) -> str:
         """Build ASS force_style string from style dict."""
+
+        def _safe(val: Any) -> str:
+            # Every value below ends up inside -vf "...force_style='...'". Drop the
+            # characters that let a value close the quoted literal or start a new filter.
+            return "".join(c for c in str(val) if c not in "'\\:,;[]=")
+
         parts = []
-        parts.append(f"FontName={style.get('font', 'Inter')}")
-        parts.append(f"FontSize={style.get('font_size', 28)}")
+        parts.append(f"FontName={_safe(style.get('font', 'Inter'))}")
+        parts.append(f"FontSize={_safe(style.get('font_size', 28))}")
         parts.append(f"Bold={1 if style.get('bold', True) else 0}")
         if style.get("primary_color"):
-            parts.append(f"PrimaryColour={style['primary_color']}")
+            parts.append(f"PrimaryColour={_safe(style['primary_color'])}")
         if style.get("outline_color"):
-            parts.append(f"OutlineColour={style['outline_color']}")
+            parts.append(f"OutlineColour={_safe(style['outline_color'])}")
         if style.get("back_color"):
-            parts.append(f"BackColour={style['back_color']}")
+            parts.append(f"BackColour={_safe(style['back_color'])}")
         border_style = style.get("border_style", 1)
-        parts.append(f"BorderStyle={border_style}")
-        parts.append(f"Outline={style.get('outline_width', 2)}")
-        parts.append(f"Shadow={style.get('shadow', 0)}")
-        parts.append(f"MarginV={style.get('margin_v', 40)}")
-        parts.append(f"Alignment={style.get('alignment', 2)}")
+        parts.append(f"BorderStyle={_safe(border_style)}")
+        parts.append(f"Outline={_safe(style.get('outline_width', 2))}")
+        parts.append(f"Shadow={_safe(style.get('shadow', 0))}")
+        parts.append(f"MarginV={_safe(style.get('margin_v', 40))}")
+        parts.append(f"Alignment={_safe(style.get('alignment', 2))}")
         return ",".join(parts)
 
     @staticmethod
